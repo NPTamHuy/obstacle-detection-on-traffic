@@ -16,7 +16,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1000px;
             margin: auto;
             background: white;
             padding: 30px;
@@ -25,15 +25,6 @@
 
         h1 {
             color: #0f172a;
-        }
-
-        .upload-form {
-            margin: 25px 0;
-        }
-
-        input[type="file"] {
-            display: block;
-            margin-bottom: 15px;
         }
 
         button {
@@ -49,71 +40,169 @@
             background: #1d4ed8;
         }
 
-        .preview {
+        .message {
+            color: #dc2626;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
             margin-top: 30px;
         }
 
-        .preview img {
-            max-width: 100%;
-            max-height: 450px;
-            object-fit: contain;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+        .image-card {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 10px;
         }
 
-        .message {
-            color: #dc2626;
-            margin: 10px 0;
+        .image-card img {
+            width: 100%;
+            max-height: 350px;
+            object-fit: contain;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+        }
+
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #e2e8f0;
+        }
+
+        @media (max-width: 700px) {
+            .image-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>Sea Obstacle Detection</h1>
 
-        <p>
-            Hệ thống nhận diện tàu thuyền và chướng ngại vật trên biển.
-        </p>
+<div class="container">
 
-        <!-- Upload form -->
-        <form
-            class="upload-form"
-            method="POST"
-            enctype="multipart/form-data"
+    <h1>Sea Obstacle Detection</h1>
+
+    <p>
+        Hệ thống nhận diện tàu thuyền và chướng ngại vật trên biển
+        sử dụng YOLO.
+    </p>
+
+    <!-- Image upload -->
+    <form method="POST" enctype="multipart/form-data">
+
+        <input
+            type="file"
+            name="image"
+            accept="image/*"
+            required
         >
-            <input
-                type="file"
-                name="image"
-                accept="image/*"
-                required
-            >
 
-            <button type="submit">
-                Upload Image
-            </button>
-        </form>
+        <button type="submit">
+            Upload and Detect
+        </button>
 
-        <!-- Display flash messages -->
-        {% with messages = get_flashed_messages() %}
-            {% for message in messages %}
-                <p class="message">{{ message }}</p>
-            {% endfor %}
-        {% endwith %}
+    </form>
 
-        <!-- Original image preview -->
-        {% if image_url %}
-            <div class="preview">
-                <h2>Original Image</h2>
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages() %}
+        {% for message in messages %}
+            <p class="message">{{ message }}</p>
+        {% endfor %}
+    {% endwith %}
 
-                <p>Filename: {{ filename }}</p>
+
+    {% if result_url %}
+
+        <!-- Original and detection images -->
+        <div class="image-grid">
+
+            <div class="image-card">
+                <h3>Original Image</h3>
 
                 <img
-                    src="{{ image_url }}"
-                    alt="Uploaded original image"
+                    src="{{ original_url }}"
+                    alt="Original image"
                 >
             </div>
-        {% endif %}
-    </div>
+
+            <div class="image-card">
+                <h3>YOLO Detection Result</h3>
+
+                <img
+                    src="{{ result_url }}"
+                    alt="Detection result"
+                >
+            </div>
+
+        </div>
+
+
+        <!-- Detection summary -->
+        <h2>Detection Summary</h2>
+
+        <p>
+            Total detected objects:
+            <strong>{{ detection_count }}</strong>
+        </p>
+
+
+        <!-- Detection details -->
+        <h2>Detection Details</h2>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Class</th>
+                    <th>Confidence</th>
+                    <th>Bounding Box</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for detection in detections %}
+
+                    <tr>
+                        <td>{{ detection.class_name }}</td>
+
+                        <td>
+                            {{ detection.confidence }}%
+                        </td>
+
+                        <td>
+                            {{ detection.bbox }}
+                        </td>
+                    </tr>
+
+                {% endfor %}
+
+                {% if not detections %}
+                    <tr>
+                        <td colspan="3">
+                            Không phát hiện đối tượng nào.
+                        </td>
+                    </tr>
+                {% endif %}
+
+            </tbody>
+
+        </table>
+
+    {% endif %}
+
+</div>
+
 </body>
 </html>
