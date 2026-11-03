@@ -16,14 +16,14 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1100px;
             margin: auto;
             background: white;
             padding: 30px;
             border-radius: 12px;
         }
 
-        h1 {
+        h1, h2 {
             color: #0f172a;
         }
 
@@ -65,29 +65,37 @@
             color: #dc2626;
         }
 
-        .image-grid {
+        .pipeline {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 20px;
             margin-top: 30px;
         }
 
-        .image-card {
+        .pipeline-card {
             background: #f8fafc;
             padding: 15px;
             border-radius: 10px;
+            min-width: 0;
         }
 
-        .image-card img {
+        .pipeline-card img {
             width: 100%;
-            max-height: 350px;
+            height: 280px;
             object-fit: contain;
+            background: #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .pipeline-card p {
+            color: #64748b;
+            font-size: 14px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 25px;
+            margin-top: 20px;
         }
 
         th, td {
@@ -101,7 +109,11 @@
         }
 
         @media (max-width: 700px) {
-            .image-grid {
+            body {
+                padding: 15px;
+            }
+
+            .pipeline {
                 grid-template-columns: 1fr;
             }
         }
@@ -116,10 +128,10 @@
 
     <p>
         Hệ thống nhận diện tàu thuyền và chướng ngại vật trên biển
-        sử dụng YOLO.
+        sử dụng YOLO và OpenCV.
     </p>
 
-    <!-- Image upload and detection settings -->
+    <!-- Upload form -->
     <form method="POST" enctype="multipart/form-data">
 
         <h2>Upload Image</h2>
@@ -131,7 +143,7 @@
             required
         >
 
-        <!-- Detection thresholds -->
+        <!-- Detection settings -->
         <div class="settings">
 
             <h2>Detection Settings</h2>
@@ -141,7 +153,7 @@
                 <label for="confidence">
                     Confidence Threshold:
                     <span id="confidence-value">
-                        {{ confidence if confidence is defined else 0.25 }}
+                        {{ confidence }}
                     </span>
                 </label>
 
@@ -152,7 +164,7 @@
                     min="0.05"
                     max="0.95"
                     step="0.05"
-                    value="{{ confidence if confidence is defined else 0.25 }}"
+                    value="{{ confidence }}"
                 >
 
             </div>
@@ -162,7 +174,7 @@
                 <label for="iou">
                     IoU Threshold:
                     <span id="iou-value">
-                        {{ iou if iou is defined else 0.45 }}
+                        {{ iou }}
                     </span>
                 </label>
 
@@ -173,7 +185,7 @@
                     min="0.05"
                     max="0.95"
                     step="0.05"
-                    value="{{ iou if iou is defined else 0.45 }}"
+                    value="{{ iou }}"
                 >
 
             </div>
@@ -183,7 +195,7 @@
         <br>
 
         <button type="submit">
-            Detect Objects
+            Process Image
         </button>
 
     </form>
@@ -199,29 +211,72 @@
 
     {% if result_url %}
 
-        <div class="image-grid">
+        <h2>Image Processing Pipeline</h2>
 
-            <div class="image-card">
-                <h3>Original Image</h3>
+        <div class="pipeline">
+
+            <!-- Original image -->
+            <div class="pipeline-card">
+                <h3>1. Original Image</h3>
 
                 <img
                     src="{{ original_url }}"
                     alt="Original image"
                 >
+
+                <p>Ảnh đầu vào từ người dùng.</p>
             </div>
 
-            <div class="image-card">
-                <h3>YOLO Detection Result</h3>
+
+            <!-- Letterbox -->
+            <div class="pipeline-card">
+                <h3>2. Letterbox</h3>
+
+                <img
+                    src="{{ letterbox_url }}"
+                    alt="Letterbox image"
+                >
+
+                <p>
+                    Resize ảnh về 640 × 640,
+                    giữ nguyên tỷ lệ và thêm padding.
+                </p>
+            </div>
+
+
+            <!-- Canny Edge -->
+            <div class="pipeline-card">
+                <h3>3. Canny Edge Detection</h3>
+
+                <img
+                    src="{{ edge_url }}"
+                    alt="Canny edge image"
+                >
+
+                <p>
+                    Grayscale → Gaussian Blur → Canny Edge Detection.
+                </p>
+            </div>
+
+
+            <!-- YOLO detection -->
+            <div class="pipeline-card">
+                <h3>4. YOLO Detection</h3>
 
                 <img
                     src="{{ result_url }}"
-                    alt="Detection result"
+                    alt="YOLO detection result"
                 >
+
+                <p>
+                    Kết quả nhận diện với bounding boxes.
+                </p>
             </div>
 
         </div>
 
 
+        <!-- Detection summary -->
         <h2>Detection Summary</h2>
 
         <p>
@@ -240,6 +295,7 @@
         </p>
 
 
+        <!-- Detection table -->
         <h2>Detection Details</h2>
 
         <table>
@@ -262,9 +318,7 @@
 
                         <td>{{ detection.class_name }}</td>
 
-                        <td>
-                            {{ detection.confidence }}%
-                        </td>
+                        <td>{{ detection.confidence }}%</td>
 
                         <td>{{ detection.bbox }}</td>
                     </tr>
@@ -289,7 +343,6 @@
 
 
 <script>
-    // Confidence slider
     const confidenceInput = document.getElementById("confidence");
     const confidenceValue = document.getElementById("confidence-value");
 
@@ -297,7 +350,6 @@
         confidenceValue.textContent = this.value;
     });
 
-    // IoU slider
     const iouInput = document.getElementById("iou");
     const iouValue = document.getElementById("iou-value");
 

@@ -1,6 +1,7 @@
 
 import os
 import cv2
+import numpy as np
 
 from flask import Flask, render_template, request, redirect, url_for, flash
 from werkzeug.utils import secure_filename
@@ -28,6 +29,7 @@ model = YOLO(MODEL_PATH)
 
 
 # Map class IDs to readable labels
+# Replace these examples with the actual classes of your dataset.
 CLASS_LABELS = {
     0: "Boat",
     1: "Buoy",
@@ -46,24 +48,154 @@ def allowed_file(filename):
 
 
 def get_class_name(class_id):
-    """
-    Convert class ID to a readable class name.
-    Use model.names as fallback if no custom label exists.
-    """
     return CLASS_LABELS.get(
         class_id,
         model.names.get(class_id, str(class_id))
     )
 
 
-def detect_objects(image_path, confidence_threshold, iou_threshold):
+def letterbox(image, new_shape=(640, 640), color=(114, 114, 114)):
+    """
+    Resize image while preserving aspect ratio.
+    Add padding to reach the target dimensions.
+    """
 
-    image = cv2.imread(image_path)
+    original_height, original_width = image.shape[:2]
 
-    if image is None:
-        raise ValueError("Cannot read uploaded image.")
+    target_height, target_width = new_shape
 
-    # Run YOLO inference with user-defined thresholds
+    # Calculate resize ratio
+    ratio = min(
+        target_width / original_width,
+        target_height / original_height
+    )
+
+    new_width = int(round(original_width * ratio))
+    new_height = int(round(original_height * ratio))
+
+    # Resize image
+    resized = cv2.resize(
+        image,
+        (new_width, new_height),
+        interpolation=cv2.INTER_LINEAR
+    )
+
+    # Calculate padding
+    pad_width = target_width - new_width
+    pad_height = target_height - new_height
+
+    left = pad_width // 2
+    right = pad_width - left
+
+    top = pad_height // 2
+    bottom = pad_height - top
+
+    # Add padding
+    output = cv2.copyMakeBorder(
+        resized,
+        top,
+        bottom,
+        left,
+        right,
+        cv2.BORDER_CONSTANT,
+        value=color
+    )
+
+    return output
+
+
+def extract_edge_map(image):
+    """
+    Convert image to grayscale,
+    apply Gaussian Blur and Canny Edge Detection.
+    """
+
+    # Convert BGR image to grayscale
+    gray = cv2.cvtColor(
+        image,
+        cv2.COLOR_BGR2GRAY
+    )
+
+    # Reduce image noise
+    blurred = cv2.GaussianBlur(
+        gray,
+        (5, 5),
+        0
+    )
+
+    # Detect edges
+    edges = cv2.Canny(
+        blurred,
+        50,
+        150
+    )
+
+    # Apply color map for visualization
+    edge_colored = cv2.applyColorMap(
+        edges,
+        cv2.COLORMAP_OCEAN
+    )
+
+    return edge_colored
+
+
+def save_image(image, filename):
+    """Save an image and return its static URL."""
+
+    output_path = os.path.join(
+        app.config["UPLOAD_FOLDER"],
+        filename
+    )
+
+    success = cv2.imwrite(output_path, image)
+
+    if not success:
+        raise ValueError(f"Cannot save image: {filename}")
+
+    return url_for(
+        "static",
+        filename=f"uploads/{filename}"
+    )
+
+
+def preprocess_image(image, filename):
+    """
+    Generate Letterbox and Canny Edge images.
+    These images are for pipeline visualization.
+    """
+
+    name, extension = os.path.splitext(filename)
+
+    # Step 1: Letterbox
+    letterbox_image = letterbox(
+        image,
+        new_shape=(640, 640)
+    )
+
+    letterbox_url = save_image(
+        letterbox_image,
+        f"{name}_letterbox{extension}"
+    )
+
+    # Step 2: Grayscale -> Gaussian Blur -> Canny
+    edge_image = extract_edge_map(image)
+
+    edge_url = save_image(
+        edge_image,
+        f"{name}_edges{extension}"
+    )
+
+    return {
+        "letterbox_url": letterbox_url,
+        "edge_url": edge_url
+    }
+
+
+def detect_objects(image, filename, confidence_threshold, iou_threshold):
+    """
+    Run YOLO on the original image and draw detection results.
+    """
+
     results = model.predict(
         source=image,
         conf=confidence_threshold,
@@ -72,6 +204,9 @@ def detect_objects(image_path, confidence_threshold, iou_threshold):
     )
 
     result = results[0]
+
+    # Plot detection boxes on the image
+    output_image = result.plot()
 
     detections = []
 
@@ -85,7 +220,6 @@ def detect_objects(image_path, confidence_threshold, iou_threshold):
         confidence = float(box.conf[0])
         class_id = int(box.cls[0])
 
-        # Convert class ID to readable label
         class_name = get_class_name(class_id)
 
         detections.append({
@@ -95,50 +229,14 @@ def detect_objects(image_path, confidence_threshold, iou_threshold):
             "bbox": [x1, y1, x2, y2]
         })
 
-        # Draw bounding box
-        cv2.rectangle(
-            image,
-            (x1, y1),
-            (x2, y2),
-            (0, 255, 0),
-            2
-        )
-
-        # Draw class name and confidence
-        label = f"{class_name} {confidence:.2f}"
-
-        cv2.putText(
-            image,
-            label,
-            (x1, max(y1 - 10, 20)),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.6,
-            (0, 255, 0),
-            2
-        )
-
-    # Save detection result
-    filename = os.path.basename(image_path)
     name, extension = os.path.splitext(filename)
 
-    output_filename = f"{name}_detected{extension}"
-
-    output_path = os.path.join(
-        app.config["UPLOAD_FOLDER"],
-        output_filename
+    result_url = save_image(
+        output_image,
+        f"{name}_detected{extension}"
     )
 
-    success = cv2.imwrite(output_path, image)
-
-    if not success:
-        raise ValueError("Cannot save detection result.")
-
-    output_url = url_for(
-        "static",
-        filename=f"uploads/{output_filename}"
-    )
-
-    return detections, output_url
+    return detections, result_url
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -160,7 +258,7 @@ def index():
             flash("Định dạng ảnh không được hỗ trợ.")
             return redirect(url_for("index"))
 
-        # Read threshold values from HTML form
+        # Read thresholds
         try:
             confidence_threshold = float(
                 request.form.get("confidence", 0.25)
@@ -180,7 +278,6 @@ def index():
             flash(f"Ngưỡng không hợp lệ: {error}")
             return redirect(url_for("index"))
 
-        # Save uploaded image
         filename = secure_filename(file.filename)
 
         image_path = os.path.join(
@@ -190,9 +287,24 @@ def index():
 
         file.save(image_path)
 
+        # Read original image
+        image = cv2.imread(image_path)
+
+        if image is None:
+            flash("Không thể đọc ảnh đã upload.")
+            return redirect(url_for("index"))
+
         try:
+            # Generate preprocessing images
+            preprocessing = preprocess_image(
+                image,
+                filename
+            )
+
+            # YOLO inference on original image
             detections, result_url = detect_objects(
-                image_path,
+                image,
+                filename,
                 confidence_threshold,
                 iou_threshold
             )
@@ -207,6 +319,8 @@ def index():
                 "static",
                 filename=f"uploads/{filename}"
             ),
+            letterbox_url=preprocessing["letterbox_url"],
+            edge_url=preprocessing["edge_url"],
             result_url=result_url,
             filename=filename,
             detections=detections,
