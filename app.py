@@ -27,6 +27,17 @@ MODEL_PATH = os.path.join(
 model = YOLO(MODEL_PATH)
 
 
+# Map class IDs to readable labels
+CLASS_LABELS = {
+    0: "Boat",
+    1: "Buoy",
+    2: "Person",
+    3: "Floating Object",
+    4: "Ship",
+    5: "Other Object"
+}
+
+
 def allowed_file(filename):
     return (
         "." in filename
@@ -34,24 +45,29 @@ def allowed_file(filename):
     )
 
 
-def detect_objects(image_path):
+def get_class_name(class_id):
     """
-    Perform object detection using YOLO.
-    Save the image with bounding boxes.
-    Return detection information and output image URL.
+    Convert class ID to a readable class name.
+    Use model.names as fallback if no custom label exists.
     """
+    return CLASS_LABELS.get(
+        class_id,
+        model.names.get(class_id, str(class_id))
+    )
 
-    # Read uploaded image
+
+def detect_objects(image_path, confidence_threshold, iou_threshold):
+
     image = cv2.imread(image_path)
 
     if image is None:
         raise ValueError("Cannot read uploaded image.")
 
-    # Run YOLO inference
+    # Run YOLO inference with user-defined thresholds
     results = model.predict(
         source=image,
-        conf=0.25,
-        iou=0.45,
+        conf=confidence_threshold,
+        iou=iou_threshold,
         verbose=False
     )
 
@@ -59,16 +75,21 @@ def detect_objects(image_path):
 
     detections = []
 
-    # Process bounding boxes
     for box in result.boxes:
-        x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
+
+        x1, y1, x2, y2 = map(
+            int,
+            box.xyxy[0].tolist()
+        )
 
         confidence = float(box.conf[0])
         class_id = int(box.cls[0])
 
-        class_name = model.names[class_id]
+        # Convert class ID to readable label
+        class_name = get_class_name(class_id)
 
         detections.append({
+            "class_id": class_id,
             "class_name": class_name,
             "confidence": round(confidence * 100, 2),
             "bbox": [x1, y1, x2, y2]
@@ -83,7 +104,7 @@ def detect_objects(image_path):
             2
         )
 
-        # Draw class label and confidence
+        # Draw class name and confidence
         label = f"{class_name} {confidence:.2f}"
 
         cv2.putText(
@@ -107,7 +128,10 @@ def detect_objects(image_path):
         output_filename
     )
 
-    cv2.imwrite(output_path, image)
+    success = cv2.imwrite(output_path, image)
+
+    if not success:
+        raise ValueError("Cannot save detection result.")
 
     output_url = url_for(
         "static",
@@ -136,6 +160,26 @@ def index():
             flash("Định dạng ảnh không được hỗ trợ.")
             return redirect(url_for("index"))
 
+        # Read threshold values from HTML form
+        try:
+            confidence_threshold = float(
+                request.form.get("confidence", 0.25)
+            )
+
+            iou_threshold = float(
+                request.form.get("iou", 0.45)
+            )
+
+            if not 0 <= confidence_threshold <= 1:
+                raise ValueError("Confidence must be between 0 and 1.")
+
+            if not 0 <= iou_threshold <= 1:
+                raise ValueError("IoU must be between 0 and 1.")
+
+        except ValueError as error:
+            flash(f"Ngưỡng không hợp lệ: {error}")
+            return redirect(url_for("index"))
+
         # Save uploaded image
         filename = secure_filename(file.filename)
 
@@ -146,9 +190,12 @@ def index():
 
         file.save(image_path)
 
-        # Run YOLO detection
         try:
-            detections, result_url = detect_objects(image_path)
+            detections, result_url = detect_objects(
+                image_path,
+                confidence_threshold,
+                iou_threshold
+            )
 
         except Exception as error:
             flash(f"Lỗi xử lý ảnh: {error}")
@@ -163,10 +210,16 @@ def index():
             result_url=result_url,
             filename=filename,
             detections=detections,
-            detection_count=len(detections)
+            detection_count=len(detections),
+            confidence=confidence_threshold,
+            iou=iou_threshold
         )
 
-    return render_template("index.html")
+    return render_template(
+        "index.html",
+        confidence=0.25,
+        iou=0.45
+    )
 
 
 if __name__ == "__main__":

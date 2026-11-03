@@ -27,6 +27,27 @@
             color: #0f172a;
         }
 
+        .settings {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 25px;
+        }
+
+        .setting-item {
+            margin-bottom: 20px;
+        }
+
+        .setting-item label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+        }
+
         button {
             background: #2563eb;
             color: white;
@@ -98,8 +119,10 @@
         sử dụng YOLO.
     </p>
 
-    <!-- Image upload -->
+    <!-- Image upload and detection settings -->
     <form method="POST" enctype="multipart/form-data">
+
+        <h2>Upload Image</h2>
 
         <input
             type="file"
@@ -108,11 +131,63 @@
             required
         >
 
+        <!-- Detection thresholds -->
+        <div class="settings">
+
+            <h2>Detection Settings</h2>
+
+            <div class="setting-item">
+
+                <label for="confidence">
+                    Confidence Threshold:
+                    <span id="confidence-value">
+                        {{ confidence if confidence is defined else 0.25 }}
+                    </span>
+                </label>
+
+                <input
+                    type="range"
+                    id="confidence"
+                    name="confidence"
+                    min="0.05"
+                    max="0.95"
+                    step="0.05"
+                    value="{{ confidence if confidence is defined else 0.25 }}"
+                >
+
+            </div>
+
+            <div class="setting-item">
+
+                <label for="iou">
+                    IoU Threshold:
+                    <span id="iou-value">
+                        {{ iou if iou is defined else 0.45 }}
+                    </span>
+                </label>
+
+                <input
+                    type="range"
+                    id="iou"
+                    name="iou"
+                    min="0.05"
+                    max="0.95"
+                    step="0.05"
+                    value="{{ iou if iou is defined else 0.45 }}"
+                >
+
+            </div>
+
+        </div>
+
+        <br>
+
         <button type="submit">
-            Upload and Detect
+            Detect Objects
         </button>
 
     </form>
+
 
     <!-- Flash messages -->
     {% with messages = get_flashed_messages() %}
@@ -124,7 +199,6 @@
 
     {% if result_url %}
 
-        <!-- Original and detection images -->
         <div class="image-grid">
 
             <div class="image-card">
@@ -148,7 +222,6 @@
         </div>
 
 
-        <!-- Detection summary -->
         <h2>Detection Summary</h2>
 
         <p>
@@ -156,15 +229,25 @@
             <strong>{{ detection_count }}</strong>
         </p>
 
+        <p>
+            Confidence Threshold:
+            <strong>{{ confidence }}</strong>
+        </p>
 
-        <!-- Detection details -->
+        <p>
+            IoU Threshold:
+            <strong>{{ iou }}</strong>
+        </p>
+
+
         <h2>Detection Details</h2>
 
         <table>
 
             <thead>
                 <tr>
-                    <th>Class</th>
+                    <th>Class ID</th>
+                    <th>Class Name</th>
                     <th>Confidence</th>
                     <th>Bounding Box</th>
                 </tr>
@@ -175,22 +258,22 @@
                 {% for detection in detections %}
 
                     <tr>
+                        <td>{{ detection.class_id }}</td>
+
                         <td>{{ detection.class_name }}</td>
 
                         <td>
                             {{ detection.confidence }}%
                         </td>
 
-                        <td>
-                            {{ detection.bbox }}
-                        </td>
+                        <td>{{ detection.bbox }}</td>
                     </tr>
 
                 {% endfor %}
 
                 {% if not detections %}
                     <tr>
-                        <td colspan="3">
+                        <td colspan="4">
                             Không phát hiện đối tượng nào.
                         </td>
                     </tr>
@@ -203,6 +286,25 @@
     {% endif %}
 
 </div>
+
+
+<script>
+    // Confidence slider
+    const confidenceInput = document.getElementById("confidence");
+    const confidenceValue = document.getElementById("confidence-value");
+
+    confidenceInput.addEventListener("input", function () {
+        confidenceValue.textContent = this.value;
+    });
+
+    // IoU slider
+    const iouInput = document.getElementById("iou");
+    const iouValue = document.getElementById("iou-value");
+
+    iouInput.addEventListener("input", function () {
+        iouValue.textContent = this.value;
+    });
+</script>
 
 </body>
 </html>
