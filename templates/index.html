@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -5,15 +6,114 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Sea Obstacle Detection</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            margin: 0;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+        }
+
+        h1 {
+            color: #0f172a;
+        }
+
+        .upload-form {
+            margin: 25px 0;
+        }
+
+        input[type="file"] {
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .preview {
+            margin-top: 30px;
+        }
+
+        .preview img {
+            max-width: 100%;
+            max-height: 450px;
+            object-fit: contain;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .message {
+            color: #dc2626;
+            margin: 10px 0;
+        }
+    </style>
 </head>
+
 <body>
+    <div class="container">
+        <h1>Sea Obstacle Detection</h1>
 
-    <h1>Hệ thống nhận diện chướng ngại vật trên biển</h1>
+        <p>
+            Hệ thống nhận diện tàu thuyền và chướng ngại vật trên biển.
+        </p>
 
-    <p>
-        Chào mừng đến với hệ thống nhận diện
-        tàu thuyền và chướng ngại vật trên biển.
-    </p>
+        <!-- Upload form -->
+        <form
+            class="upload-form"
+            method="POST"
+            enctype="multipart/form-data"
+        >
+            <input
+                type="file"
+                name="image"
+                accept="image/*"
+                required
+            >
 
+            <button type="submit">
+                Upload Image
+            </button>
+        </form>
+
+        <!-- Display flash messages -->
+        {% with messages = get_flashed_messages() %}
+            {% for message in messages %}
+                <p class="message">{{ message }}</p>
+            {% endfor %}
+        {% endwith %}
+
+        <!-- Original image preview -->
+        {% if image_url %}
+            <div class="preview">
+                <h2>Original Image</h2>
+
+                <p>Filename: {{ filename }}</p>
+
+                <img
+                    src="{{ image_url }}"
+                    alt="Uploaded original image"
+                >
+            </div>
+        {% endif %}
+    </div>
 </body>
 </html>
