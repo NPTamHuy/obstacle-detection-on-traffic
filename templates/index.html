@@ -1,59 +1,121 @@
 
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Sea Obstacle Detection</title>
+    <title>Sea Obstacle Detection Dashboard</title>
 
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: Arial, sans-serif;
             background: #f1f5f9;
-            margin: 0;
-            padding: 40px;
+            color: #1e293b;
+            padding: 30px;
         }
 
         .container {
-            max-width: 1100px;
+            max-width: 1400px;
             margin: auto;
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
         }
 
-        h1, h2 {
+        header {
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: #0f172a;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #64748b;
+        }
+
+        .section {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .section h2 {
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        /* Training metrics */
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+        }
+
+        .metric-card {
+            padding: 20px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+        }
+
+        .metric-card p {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .metric-card h3 {
+            font-size: 26px;
             color: #0f172a;
         }
 
-        .settings {
+        /* Upload form */
+
+        .upload-form {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        input[type="file"] {
+            padding: 12px;
+            border: 1px dashed #94a3b8;
+            border-radius: 8px;
             background: #f8fafc;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 25px;
-        }
-
-        .setting-item {
-            margin-bottom: 20px;
-        }
-
-        .setting-item label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 10px;
         }
 
         input[type="range"] {
             width: 100%;
         }
 
+        .threshold-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
         button {
+            padding: 13px;
+            border: none;
+            border-radius: 8px;
             background: #2563eb;
             color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
         }
 
@@ -61,426 +123,359 @@
             background: #1d4ed8;
         }
 
-        .message {
-            color: #dc2626;
+        .error {
+            padding: 12px;
+            background: #fee2e2;
+            color: #991b1b;
+            border-radius: 8px;
+            margin-bottom: 15px;
         }
 
-        .pipeline {
+        /* Detection overview */
+
+        .overview-grid {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .overview-card {
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .overview-card p {
+            color: #64748b;
+            margin-bottom: 10px;
+        }
+
+        .overview-card h3 {
+            font-size: 28px;
+        }
+
+        /* Pipeline */
+
+        .pipeline-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
             gap: 20px;
-            margin-top: 30px;
         }
 
         .pipeline-card {
-            background: #f8fafc;
-            padding: 15px;
+            border: 1px solid #e2e8f0;
             border-radius: 10px;
-            min-width: 0;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .pipeline-card h3 {
+            padding: 15px;
+            background: #f8fafc;
+            font-size: 16px;
         }
 
         .pipeline-card img {
+            display: block;
             width: 100%;
-            height: 280px;
+            height: 300px;
             object-fit: contain;
             background: #e2e8f0;
-            border-radius: 8px;
         }
 
-        .pipeline-card p {
-            color: #64748b;
-            font-size: 14px;
+        /* Detection table */
+
+        .table-wrapper {
+            overflow-x: auto;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th, td {
-            border: 1px solid #e2e8f0;
-            padding: 10px;
             text-align: left;
         }
 
+        th, td {
+            padding: 14px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
         th {
-            background: #e2e8f0;
-        }
-
-        @media (max-width: 700px) {
-            body {
-                padding: 15px;
-            }
-
-            .pipeline {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .metrics-section {
-            margin-top: 35px;
-        }
-
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .metric-card {
             background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 20px 12px;
+            color: #475569;
+        }
+
+        .empty {
             text-align: center;
-        }
-
-        .metric-card h3 {
             color: #64748b;
-            font-size: 14px;
-            margin: 0 0 12px;
-        }
-
-        .metric-card .value {
-            color: #0f172a;
-            font-size: 25px;
-            font-weight: bold;
-        }
-
-        .metric-card p {
-            color: #64748b;
-            font-size: 12px;
-            margin-bottom: 0;
+            padding: 25px;
         }
 
         @media (max-width: 900px) {
             .metrics-grid {
-                grid-template-columns: repeat(3, minmax(0, 1fr));
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .pipeline-grid {
+                grid-template-columns: 1fr;
             }
         }
 
         @media (max-width: 600px) {
-            .metrics-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+            body {
+                padding: 15px;
+            }
+
+            .metrics-grid,
+            .threshold-grid,
+            .overview-grid {
+                grid-template-columns: 1fr;
             }
         }
-
     </style>
 </head>
 
 <body>
-
 <div class="container">
 
-    <h1>Sea Obstacle Detection</h1>
+    <header>
+        <h1>Sea Obstacle Detection System</h1>
+        <p>
+            AI-powered maritime obstacle detection using YOLO
+            and OpenCV preprocessing.
+        </p>
+    </header>
 
-    <p>
-        Hệ thống nhận diện tàu thuyền và chướng ngại vật trên biển
-        sử dụng YOLO và OpenCV.
-    </p>
-    
-    <!-- Model Training Metrics -->
-    <section class="metrics-section">
-
+    <!-- Training metrics -->
+    <section class="section">
         <h2>Model Training Performance</h2>
 
         {% if metrics %}
+        <div class="metrics-grid">
 
-            <div class="metrics-grid">
-
-                <div class="metric-card">
-                    <h3>Precision</h3>
-
-                    <div class="value">
-                        {{ metrics.precision }}%
-                    </div>
-
-                    <p>Prediction accuracy</p>
-                </div>
-
-                <div class="metric-card">
-                    <h3>Recall</h3>
-
-                    <div class="value">
-                        {{ metrics.recall }}%
-                    </div>
-
-                    <p>Object detection coverage</p>
-                </div>
-
-                <div class="metric-card">
-                    <h3>mAP50</h3>
-
-                    <div class="value">
-                        {{ metrics.map50 }}%
-                    </div>
-
-                    <p>IoU = 0.50</p>
-                </div>
-
-                <div class="metric-card">
-                    <h3>mAP50-95</h3>
-
-                    <div class="value">
-                        {{ metrics.map50_95 }}%
-                    </div>
-
-                    <p>IoU = 0.50 - 0.95</p>
-                </div>
-
-                <div class="metric-card">
-                    <h3>Epochs</h3>
-
-                    <div class="value">
-                        {{ metrics.epochs }}
-                    </div>
-
-                    <p>
-                        Best epoch: {{ metrics.best_epoch }}
-                    </p>
-                </div>
-
+            <div class="metric-card">
+                <p>Precision</p>
+                <h3>{{ "%.4f"|format(metrics.precision) }}</h3>
             </div>
 
+            <div class="metric-card">
+                <p>Recall</p>
+                <h3>{{ "%.4f"|format(metrics.recall) }}</h3>
+            </div>
+
+            <div class="metric-card">
+                <p>mAP50</p>
+                <h3>{{ "%.4f"|format(metrics.map50) }}</h3>
+            </div>
+
+            <div class="metric-card">
+                <p>mAP50-95</p>
+                <h3>{{ "%.4f"|format(metrics.map50_95) }}</h3>
+            </div>
+
+            <div class="metric-card">
+                <p>Epochs</p>
+                <h3>{{ metrics.epochs }}</h3>
+            </div>
+
+        </div>
         {% else %}
-
-            <p>
-                Training metrics are not available.
-                Please check the results.csv file.
-            </p>
-
+        <p>Training metrics are not available.</p>
         {% endif %}
-
     </section>
 
-    <!-- Upload form -->
-    <form method="POST" enctype="multipart/form-data">
+    <!-- Upload image -->
+    <section class="section">
+        <h2>Upload Maritime Image</h2>
 
-        <h2>Upload Image</h2>
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
 
-        <input
-            type="file"
-            name="image"
-            accept="image/*"
-            required
+        <form
+            class="upload-form"
+            method="POST"
+            enctype="multipart/form-data"
         >
 
-        <!-- Detection settings -->
-        <div class="settings">
-
-            <h2>Detection Settings</h2>
-
-            <div class="setting-item">
-
-                <label for="confidence">
-                    Confidence Threshold:
-                    <span id="confidence-value">
-                        {{ confidence }}
-                    </span>
-                </label>
-
+            <div class="form-group">
+                <label>Select an image</label>
                 <input
-                    type="range"
-                    id="confidence"
-                    name="confidence"
-                    min="0.05"
-                    max="0.95"
-                    step="0.05"
-                    value="{{ confidence }}"
+                    type="file"
+                    name="image"
+                    accept="image/*"
+                    required
                 >
+            </div>
+
+            <div class="threshold-grid">
+
+                <div class="form-group">
+                    <label>
+                        Confidence:
+                        <span id="confidence-value">
+                            {{ confidence if confidence is defined else 0.25 }}
+                        </span>
+                    </label>
+
+                    <input
+                        type="range"
+                        name="confidence"
+                        min="0.05"
+                        max="1"
+                        step="0.05"
+                        value="{{ confidence if confidence is defined else 0.25 }}"
+                        oninput="document.getElementById('confidence-value').textContent=this.value"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        IoU:
+                        <span id="iou-value">
+                            {{ iou if iou is defined else 0.45 }}
+                        </span>
+                    </label>
+
+                    <input
+                        type="range"
+                        name="iou"
+                        min="0.05"
+                        max="1"
+                        step="0.05"
+                        value="{{ iou if iou is defined else 0.45 }}"
+                        oninput="document.getElementById('iou-value').textContent=this.value"
+                    >
+                </div>
 
             </div>
 
-            <div class="setting-item">
+            <button type="submit">
+                Detect Obstacles
+            </button>
 
-                <label for="iou">
-                    IoU Threshold:
-                    <span id="iou-value">
-                        {{ iou }}
-                    </span>
-                </label>
+        </form>
+    </section>
 
-                <input
-                    type="range"
-                    id="iou"
-                    name="iou"
-                    min="0.05"
-                    max="0.95"
-                    step="0.05"
-                    value="{{ iou }}"
-                >
+    {% if original_url %}
 
+    <!-- Detection overview -->
+    <section class="section">
+        <h2>Detection Overview</h2>
+
+        <div class="overview-grid">
+
+            <div class="overview-card">
+                <p>Image filename</p>
+                <h3 style="font-size: 18px;">
+                    {{ filename }}
+                </h3>
+            </div>
+
+            <div class="overview-card">
+                <p>Total detected objects</p>
+                <h3>{{ detection_count }}</h3>
             </div>
 
         </div>
+    </section>
 
-        <br>
-
-        <button type="submit">
-            Process Image
-        </button>
-
-    </form>
-
-
-    <!-- Flash messages -->
-    {% with messages = get_flashed_messages() %}
-        {% for message in messages %}
-            <p class="message">{{ message }}</p>
-        {% endfor %}
-    {% endwith %}
-
-
-    {% if result_url %}
-
+    <!-- Detection pipeline -->
+    <section class="section">
         <h2>Image Processing Pipeline</h2>
 
-        <div class="pipeline">
+        <div class="pipeline-grid">
 
-            <!-- Original image -->
             <div class="pipeline-card">
                 <h3>1. Original Image</h3>
-
-                <img
-                    src="{{ original_url }}"
-                    alt="Original image"
-                >
-
-                <p>Ảnh đầu vào từ người dùng.</p>
+                <img src="{{ original_url }}" alt="Original image">
             </div>
 
-
-            <!-- Letterbox -->
             <div class="pipeline-card">
-                <h3>2. Letterbox</h3>
-
-                <img
-                    src="{{ letterbox_url }}"
-                    alt="Letterbox image"
-                >
-
-                <p>
-                    Resize ảnh về 640 × 640,
-                    giữ nguyên tỷ lệ và thêm padding.
-                </p>
+                <h3>2. Letterbox Preprocessing</h3>
+                <img src="{{ letterbox_url }}" alt="Letterbox image">
             </div>
 
-
-            <!-- Canny Edge -->
             <div class="pipeline-card">
                 <h3>3. Canny Edge Detection</h3>
-
-                <img
-                    src="{{ edge_url }}"
-                    alt="Canny edge image"
-                >
-
-                <p>
-                    Grayscale → Gaussian Blur → Canny Edge Detection.
-                </p>
+                <img src="{{ edge_url }}" alt="Canny edge image">
             </div>
 
-
-            <!-- YOLO detection -->
             <div class="pipeline-card">
-                <h3>4. YOLO Detection</h3>
-
-                <img
-                    src="{{ result_url }}"
-                    alt="YOLO detection result"
-                >
-
-                <p>
-                    Kết quả nhận diện với bounding boxes.
-                </p>
+                <h3>4. YOLO Detection Result</h3>
+                <img src="{{ result_url }}" alt="YOLO result">
             </div>
 
         </div>
+    </section>
 
+    <!-- Class statistics -->
+    <section class="section">
+        <h2>Detection Statistics</h2>
 
-        <!-- Detection summary -->
-        <h2>Detection Summary</h2>
+        {% if detection_summary %}
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Class</th>
+                        <th>Number of Objects</th>
+                    </tr>
+                </thead>
 
-        <p>
-            Total detected objects:
-            <strong>{{ detection_count }}</strong>
-        </p>
+                <tbody>
+                    {% for item in detection_summary %}
+                    <tr>
+                        <td>{{ item.class_name }}</td>
+                        <td>{{ item.count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <p class="empty">No objects detected.</p>
+        {% endif %}
+    </section>
 
-        <p>
-            Confidence Threshold:
-            <strong>{{ confidence }}</strong>
-        </p>
-
-        <p>
-            IoU Threshold:
-            <strong>{{ iou }}</strong>
-        </p>
-
-
-        <!-- Detection table -->
+    <!-- Detection details -->
+    <section class="section">
         <h2>Detection Details</h2>
 
-        <table>
-
-            <thead>
-                <tr>
-                    <th>Class ID</th>
-                    <th>Class Name</th>
-                    <th>Confidence</th>
-                    <th>Bounding Box</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-                {% for detection in detections %}
-
+        {% if detections %}
+        <div class="table-wrapper">
+            <table>
+                <thead>
                     <tr>
-                        <td>{{ detection.class_id }}</td>
+                        <th>#</th>
+                        <th>Class</th>
+                        <th>Confidence</th>
+                        <th>Bounding Box</th>
+                    </tr>
+                </thead>
 
+                <tbody>
+                    {% for detection in detections %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
                         <td>{{ detection.class_name }}</td>
-
-                        <td>{{ detection.confidence }}%</td>
-
-                        <td>{{ detection.bbox }}</td>
-                    </tr>
-
-                {% endfor %}
-
-                {% if not detections %}
-                    <tr>
-                        <td colspan="4">
-                            Không phát hiện đối tượng nào.
+                        <td>
+                            {{ "%.2f"|format(detection.confidence) }}
                         </td>
+                        <td>{{ detection.box }}</td>
                     </tr>
-                {% endif %}
-
-            </tbody>
-
-        </table>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <p class="empty">No objects detected.</p>
+        {% endif %}
+    </section>
 
     {% endif %}
 
 </div>
-
-
-<script>
-    const confidenceInput = document.getElementById("confidence");
-    const confidenceValue = document.getElementById("confidence-value");
-
-    confidenceInput.addEventListener("input", function () {
-        confidenceValue.textContent = this.value;
-    });
-
-    const iouInput = document.getElementById("iou");
-    const iouValue = document.getElementById("iou-value");
-
-    iouInput.addEventListener("input", function () {
-        iouValue.textContent = this.value;
-    });
-</script>
-
 </body>
 </html>

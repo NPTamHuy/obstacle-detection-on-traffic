@@ -7,7 +7,7 @@ import pandas as pd
 from flask import Flask, render_template, request, redirect, url_for, flash
 from werkzeug.utils import secure_filename
 from ultralytics import YOLO
-
+from collections import Counter
 
 app = Flask(__name__)
 
@@ -44,6 +44,23 @@ CLASS_LABELS = {
     4: "Ship",
     5: "Other Object"
 }
+
+def summarize_detections(detections):
+    """
+    Thống kê số lượng vật thể theo class.
+    """
+    counts = Counter(
+        detection["class_name"]
+        for detection in detections
+    )
+
+    return [
+        {
+            "class_name": class_name,
+            "count": count
+        }
+        for class_name, count in counts.items()
+    ]
 
 
 def load_metrics():
@@ -323,42 +340,24 @@ def detect_objects(image, filename, confidence_threshold, iou_threshold):
 
 @app.route("/", methods=["GET", "POST"])
 def index():
+    metrics = load_metrics()
 
     if request.method == "POST":
+        file = request.files.get("image")
 
-        if "image" not in request.files:
-            flash("Không tìm thấy file ảnh.")
-            return redirect(url_for("index"))
-
-        file = request.files["image"]
-
-        if file.filename == "":
-            flash("Vui lòng chọn ảnh.")
-            return redirect(url_for("index"))
+        if not file or file.filename == "":
+            return render_template(
+                "index.html",
+                metrics=metrics,
+                error="Please select an image."
+            )
 
         if not allowed_file(file.filename):
-            flash("Định dạng ảnh không được hỗ trợ.")
-            return redirect(url_for("index"))
-
-        # Read thresholds
-        try:
-            confidence_threshold = float(
-                request.form.get("confidence", 0.25)
+            return render_template(
+                "index.html",
+                metrics=metrics,
+                error="Unsupported image format.",
             )
-
-            iou_threshold = float(
-                request.form.get("iou", 0.45)
-            )
-
-            if not 0 <= confidence_threshold <= 1:
-                raise ValueError("Confidence must be between 0 and 1.")
-
-            if not 0 <= iou_threshold <= 1:
-                raise ValueError("IoU must be between 0 and 1.")
-
-        except ValueError as error:
-            flash(f"Ngưỡng không hợp lệ: {error}")
-            return redirect(url_for("index"))
 
         filename = secure_filename(file.filename)
 
@@ -369,54 +368,47 @@ def index():
 
         file.save(image_path)
 
-        # Read original image
-        image = cv2.imread(image_path)
+        confidence = float(request.form.get("confidence", 0.25))
+        iou = float(request.form.get("iou", 0.45))
 
-        if image is None:
-            flash("Không thể đọc ảnh đã upload.")
-            return redirect(url_for("index"))
+        # Preprocessing
+        letterbox_url, edge_url = preprocess_image(
+            image_path,
+            filename
+        )
 
-        try:
-            # Generate preprocessing images
-            preprocessing = preprocess_image(
-                image,
-                filename
-            )
+        # YOLO detection
+        detections, result_url = detect_objects(
+            image_path,
+            filename,
+            confidence,
+            iou
+        )
 
-            # YOLO inference on original image
-            detections, result_url = detect_objects(
-                image,
-                filename,
-                confidence_threshold,
-                iou_threshold
-            )
-
-        except Exception as error:
-            flash(f"Lỗi xử lý ảnh: {error}")
-            return redirect(url_for("index"))
+        # Detection statistics
+        detection_summary = summarize_detections(detections)
 
         return render_template(
             "index.html",
+            metrics=metrics,
             original_url=url_for(
                 "static",
                 filename=f"uploads/{filename}"
             ),
-            letterbox_url=preprocessing["letterbox_url"],
-            edge_url=preprocessing["edge_url"],
+            letterbox_url=letterbox_url,
+            edge_url=edge_url,
             result_url=result_url,
             filename=filename,
             detections=detections,
+            detection_summary=detection_summary,
             detection_count=len(detections),
-            confidence=confidence_threshold,
-            iou=iou_threshold,
-            metrics=load_metrics()
+            confidence=confidence,
+            iou=iou
         )
 
     return render_template(
-      "index.html",
-      confidence=0.25,
-      iou=0.45,
-      metrics=load_metrics()
+        "index.html",
+        metrics=metrics
     )
 
 
