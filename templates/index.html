@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hệ Thống Thị Giác Máy Tính: Nhận Diện Tàu Biển & Chướng Ngại Vật</title>
+  <title>Hệ Thống Thị Giác Máy Tính: Nhận Diện Vật Thể Hàng Hải</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
   <style>
@@ -29,10 +29,9 @@
     }
     .container { max-width: 1400px; margin: 0 auto; }
 
-    /* Header */
     header {
       background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-      padding: 28px;
+      padding: 26px 30px;
       border-radius: 12px;
       border: 1px solid var(--card-border);
       margin-bottom: 24px;
@@ -40,7 +39,7 @@
       justify-content: space-between;
       align-items: center;
     }
-    header h1 { margin: 0 0 6px 0; font-size: 26px; color: var(--primary); font-weight: 700; }
+    header h1 { margin: 0 0 6px 0; font-size: 24px; color: var(--primary); font-weight: 700; }
     header p { margin: 0; color: var(--text-muted); font-size: 14px; }
     .badge-tag {
       background: rgba(56, 189, 248, 0.15);
@@ -52,7 +51,6 @@
       border: 1px solid rgba(56, 189, 248, 0.3);
     }
 
-    /* Model Performance Metrics */
     .metrics-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -64,13 +62,11 @@
       border: 1px solid var(--card-border);
       border-radius: 10px;
       padding: 16px 20px;
-      position: relative;
     }
     .m-card span { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
-    .m-card .val { font-size: 28px; font-weight: 700; color: #fff; margin: 6px 0 2px 0; font-family: 'JetBrains Mono', monospace; }
+    .m-card .val { font-size: 26px; font-weight: 700; color: #fff; margin: 6px 0 2px 0; font-family: 'JetBrains Mono', monospace; }
     .m-card .desc { font-size: 12px; color: var(--text-muted); }
 
-    /* Control Panel */
     .control-panel {
       background: var(--card);
       border: 1px solid var(--card-border);
@@ -80,13 +76,12 @@
     }
     .form-row {
       display: flex;
-      gap: 24px;
+      gap: 20px;
       flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
     }
 
-    /* Custom Upload Button */
     .custom-file-upload {
       display: inline-flex;
       align-items: center;
@@ -96,16 +91,14 @@
       padding: 10px 18px;
       border-radius: 8px;
       cursor: pointer;
-      transition: all 0.25s ease;
       color: var(--text);
       font-size: 13px;
       font-weight: 500;
-      user-select: none;
+      transition: all 0.2s;
     }
     .custom-file-upload:hover {
       background: rgba(56, 189, 248, 0.08);
       border-color: var(--primary);
-      box-shadow: 0 0 14px rgba(56, 189, 248, 0.2);
     }
     .custom-file-upload svg {
       width: 18px;
@@ -115,7 +108,7 @@
       fill: none;
     }
     .file-name-preview {
-      max-width: 200px;
+      max-width: 180px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -127,26 +120,108 @@
       border-radius: 4px;
     }
 
-    /* Sliders */
     .slider-group { display: flex; align-items: center; gap: 12px; font-size: 14px; }
     .slider-group label { color: var(--text-muted); }
     .slider-group input[type="range"] { accent-color: var(--primary); cursor: pointer; }
-    .slider-val { font-family: 'JetBrains Mono', monospace; font-weight: bold; color: var(--primary); width: 40px; }
+    .slider-val { font-family: 'JetBrains Mono', monospace; font-weight: bold; color: var(--primary); width: 36px; }
 
     .btn-submit {
       background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
       color: white;
       border: none;
-      padding: 11px 24px;
+      padding: 11px 22px;
       font-size: 14px;
       font-weight: 600;
       border-radius: 8px;
       cursor: pointer;
       transition: all 0.2s;
     }
-    .btn-submit:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-submit:hover { opacity: 0.9; }
 
-    /* Latency Strip */
+    .btn-camera {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-camera:hover {
+      background: var(--accent);
+      color: #0b0f19;
+    }
+    .btn-camera.active {
+      background: rgba(244, 63, 94, 0.2);
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+    .btn-camera.active:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    /* Live Camera Section */
+    .camera-section {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      display: none;
+      text-align: center;
+    }
+    .camera-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .camera-header h3 { margin: 0; color: var(--accent); font-size: 18px; }
+    .live-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--danger);
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .live-dot {
+      width: 10px;
+      height: 10px;
+      background: var(--danger);
+      border-radius: 50%;
+      animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.85); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    .cam-box {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+      aspect-ratio: 16 / 9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--card-border);
+    }
+    .cam-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
     .latency-bar {
       display: flex;
       gap: 16px;
@@ -160,7 +235,7 @@
     }
     .latency-item strong { color: var(--accent); font-family: 'JetBrains Mono', monospace; }
 
-    /* Pipeline Step Columns */
+    /* 4-Step Pipeline Grid */
     .pipeline-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -212,7 +287,6 @@
       font-family: 'JetBrains Mono', monospace;
     }
 
-    /* Objects Table */
     .table-box {
       background: var(--card);
       border: 1px solid var(--card-border);
@@ -253,12 +327,12 @@
     <header>
       <div>
         <h1>Hệ Thống Nhận Diện Chướng Ngại Vật & Tàu Thuyền</h1>
-        <p>Quy trình Xử lý ảnh số đa tầng (Geometric Transformation, Filtering & Deep Feature Extraction)</p>
+        <p>Quy trình Cải thiện chất lượng ảnh (DIP Filter) & Suy luận Nơ-ron (Ultralytics YOLO)</p>
       </div>
-      <div class="badge-tag">Môn học: Xử Lý Ảnh</div>
+      <div class="badge-tag">Đồ Án: Xử Lý Ảnh Số</div>
     </header>
 
-    <!-- METRICS PANEL -->
+    <!-- THÔNG SỐ HUẤN LUYỆN -->
     <div class="metrics-grid">
       <div class="m-card">
         <span>Độ chính xác mAP@0.5</span>
@@ -266,65 +340,91 @@
         <div class="desc">Điểm trung bình tại ngưỡng IoU 50%</div>
       </div>
       <div class="m-card">
-        <span>Chuẩn khắt khe mAP@0.5:0.95</span>
+        <span>Khắt khe mAP@0.5:0.95</span>
         <div class="val" style="color: #a855f7;">{{ metrics.map50_95 }}</div>
-        <div class="desc">Đánh giá độ khít của bounding box</div>
+        <div class="desc">Độ khít bounding box của mô hình</div>
       </div>
       <div class="m-card">
-        <span>Tỷ lệ chuẩn xác (Precision)</span>
+        <span>Độ chuẩn xác (Precision)</span>
         <div class="val" style="color: var(--accent);">{{ metrics.precision }}</div>
         <div class="desc">Tỷ lệ đoán đúng trên số ca phát hiện</div>
       </div>
       <div class="m-card">
-        <span>Khả năng bao quát (Recall)</span>
+        <span>Độ bao quát (Recall)</span>
         <div class="val" style="color: var(--warning);">{{ metrics.recall }}</div>
         <div class="desc">Bắt trọn mục tiêu, hạn chế bỏ sót</div>
       </div>
       <div class="m-card">
-        <span>Dung lượng huấn luyện</span>
+        <span>Dung lượng mô hình</span>
         <div class="val">{{ metrics.total_epochs }} Epochs</div>
         <div class="desc">Điểm tối ưu tại Epoch #{{ metrics.best_epoch }}</div>
       </div>
     </div>
 
-    <!-- CONTROL PANEL -->
+    <!-- KHUNG ĐIỀU KHIỂN -->
     <div class="control-panel">
-      <form method="POST" enctype="multipart/form-data">
+      <form method="POST" enctype="multipart/form-data" id="pipelineForm">
         <div class="form-row">
           <div>
-            <input type="file" id="imageInput" name="image" accept="image/*" required style="display: none;" onchange="updateFileName(this)">
+            <input type="file" id="imageInput" name="image" accept="image/*" style="display: none;" onchange="updateFileName(this)">
             <label for="imageInput" class="custom-file-upload">
               <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="17 8 12 3 7 8"></polyline>
                 <line x1="12" y1="3" x2="12" y2="15"></line>
               </svg>
-              <span>Chọn tệp ảnh</span>
+              <span>Chọn tệp ảnh tĩnh</span>
               <span class="file-name-preview" id="fileNameText">Chưa có tệp</span>
             </label>
           </div>
+
           <div class="slider-group">
-            <label>Ngưỡng tin cậy (Confidence):</label>
-            <input type="range" name="conf" min="0.1" max="0.9" step="0.05" value="{{ conf }}"
-                   oninput="document.getElementById('conf_v').innerText = this.value">
+            <label>Ngưỡng tin cậy (Conf):</label>
+            <input type="range" id="confSlider" name="conf" min="0.1" max="0.9" step="0.05" value="{{ conf }}"
+                   oninput="onThresholdChange()">
             <span class="slider-val" id="conf_v">{{ conf }}</span>
           </div>
+
           <div class="slider-group">
-            <label>Ngưỡng loại trùng lặp (IoU NMS):</label>
-            <input type="range" name="iou" min="0.1" max="0.9" step="0.05" value="{{ iou }}"
-                   oninput="document.getElementById('iou_v').innerText = this.value">
+            <label>Ngưỡng IoU (NMS):</label>
+            <input type="range" id="iouSlider" name="iou" min="0.1" max="0.9" step="0.05" value="{{ iou }}"
+                   oninput="onThresholdChange()">
             <span class="slider-val" id="iou_v">{{ iou }}</span>
           </div>
+
           <button type="submit" class="btn-submit">Chạy Pipeline XLA</button>
+
+          <!-- NÚT MỞ / TẮT CAMERA -->
+          <button type="button" class="btn-camera" id="toggleCamBtn" onclick="toggleCamera()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+            <span id="camBtnText">Mở Camera</span>
+          </button>
         </div>
       </form>
     </div>
 
+    <!-- KHUNG HIỂN THỊ CAMERA REAL-TIME -->
+    <div class="camera-section" id="cameraSection">
+      <div class="camera-header">
+        <h3>Luồng Camera Trực Tiếp (Bộ lọc Cải thiện + Suy luận YOLO)</h3>
+        <div class="live-indicator">
+          <span class="live-dot"></span>
+          <span>LIVE STREAM</span>
+        </div>
+      </div>
+      <div class="cam-box">
+        <img id="cameraFeed" src="" alt="Live Video Feed">
+      </div>
+    </div>
+
     {% if result %}
-    <!-- LATENCY BENCHMARK -->
+    <!-- ĐO LƯỜNG ĐỘ TRỄ (LATENCY) -->
     <div class="latency-bar">
       <span>⚡ <strong>Thời gian đo lường:</strong></span>
-      <span class="latency-item">Tiền xử lý OpenCV: <strong>{{ result.latencies.preprocess }} ms</strong></span>
+      <span class="latency-item">Cải thiện ảnh & Letterbox: <strong>{{ result.latencies.preprocess }} ms</strong></span>
       <span>•</span>
       <span class="latency-item">Mạng nơ-ron suy luận: <strong>{{ result.latencies.inference }} ms</strong></span>
       <span>•</span>
@@ -333,50 +433,50 @@
       <span class="latency-item">Tổng chu trình: <strong>{{ result.latencies.total }} ms</strong></span>
     </div>
 
-    <!-- 4 PIPELINE STEPS -->
+    <!-- 4 BƯỚC PIPELINE XỬ LÝ ẢNH THỰC TẾ -->
     <div class="pipeline-grid">
-      <!-- 1: Ảnh gốc -->
+      <!-- BƯỚC 1 -->
       <div class="step-card">
         <div class="step-header">1. Không Gian Ảnh Gốc</div>
         <div class="step-img-box"><img src="{{ result.raw_img }}" alt="Original Image"></div>
         <div class="step-footer">
-          <strong>Kích thước ảnh:</strong> <code>{{ result.orig_size }} px</code><br>
-          Hệ màu BGR từ cảm biến/camera với tỷ lệ khung hình tự nhiên, dải mức xám <code>[0, 255]</code>.
+          <strong>Độ phân giải:</strong> <code>{{ result.orig_size }} px</code><br>
+          Ảnh màu thô từ cảm biến camera với tỷ lệ khung hình tự nhiên, dải mức xám <code>[0, 255]</code>.
         </div>
       </div>
 
-      <!-- 2: Letterbox -->
+      <!-- BƯỚC 2: BỘ LỌC CẢI THIỆN -->
       <div class="step-card">
-        <div class="step-header">2. Tiền Xử Lý Hình Học (Letterbox)</div>
+        <div class="step-header">2. Bộ Lọc Cải Thiện (CLAHE + Sharpen)</div>
+        <div class="step-img-box"><img src="{{ result.enhanced_img }}" alt="Enhanced Image"></div>
+        <div class="step-footer">
+          <strong>CLAHE (Kênh L):</strong> Cân bằng lược đồ xám cục bộ, khử mờ do sương mù hoặc chói nắng mặt nước.<br>
+          <strong>Unsharp Mask:</strong> Tăng cường độ tương phản biên cạnh và cấu trúc thân tàu.
+        </div>
+      </div>
+
+      <!-- BƯỚC 3: TIỀN XỬ LÝ LETTERBOX CỦA YOLO -->
+      <div class="step-card">
+        <div class="step-header">3. Tiền Xử Lý Hình Học (Letterbox)</div>
         <div class="step-img-box"><img src="{{ result.letterbox_img }}" alt="Letterbox Padded"></div>
         <div class="step-footer">
-          <strong>Nội suy:</strong> Bilinear Interpolation giữ nguyên tỷ lệ vật thể.<br>
-          <strong>Đệm viền hằng số:</strong> Bù viền xám <code>value = 114</code> để đưa về kích thước chuẩn <code>640 × 640 px</code>.
+          <strong>Nội suy:</strong> Bilinear Interpolation giữ nguyên tỷ lệ chiều rộng/cao.<br>
+          <strong>Đệm hằng số:</strong> Bù viền xám <code>value = 114</code> để khớp kích thước chuẩn mạng <code>640 × 640 px</code>.
         </div>
       </div>
 
-      <!-- 3: Biên Canny -->
-      <div class="step-card">
-        <div class="step-header">3. Trích Xuất Biên Cạnh (Canny Edge)</div>
-        <div class="step-img-box"><img src="{{ result.edge_img }}" alt="Canny Edge Map"></div>
-        <div class="step-footer">
-          <strong>Lọc không gian:</strong> Gaussian Blur làm mịn và khử nhiễu sóng biển.<br>
-          <strong>Toán tử Canny:</strong> Đạo hàm bậc một phát hiện đường biên cấu trúc thân tàu.
-        </div>
-      </div>
-
-      <!-- 4: Kết quả NMS -->
+      <!-- BƯỚC 4: KẾT QUẢ ĐÍCH -->
       <div class="step-card">
         <div class="step-header">4. Hậu Xử Lý & Lọc NMS</div>
         <div class="step-img-box"><img src="{{ result.final_img }}" alt="Final Detection"></div>
         <div class="step-footer">
-          <strong>Ánh xạ ngược:</strong> Chiếu tọa độ box từ ma trận <code>640 × 640</code> về kích thước ảnh ban đầu.<br>
+          <strong>Ánh xạ ngược:</strong> Chiếu tọa độ box từ không gian 640 về kích thước ảnh thực.<br>
           <strong>Lọc phi cực đại (NMS):</strong> Phát hiện <strong>{{ result.count }}</strong> mục tiêu độc lập.
         </div>
       </div>
     </div>
 
-    <!-- DETECTIONS TABLE -->
+    <!-- BẢNG CHI TIẾT TỌA ĐỘ VÀ CLASS -->
     {% if result.detections %}
     <div class="table-box">
       <table>
@@ -411,6 +511,8 @@
   </div>
 
   <script>
+    let isCamRunning = false;
+
     function updateFileName(input) {
       const fileNameSpan = document.getElementById('fileNameText');
       if (input.files && input.files.length > 0) {
@@ -419,6 +521,54 @@
       } else {
         fileNameSpan.innerText = 'Chưa có tệp';
         fileNameSpan.style.color = 'var(--text-muted)';
+      }
+    }
+
+    async function toggleCamera() {
+      const btn = document.getElementById('toggleCamBtn');
+      const btnText = document.getElementById('camBtnText');
+      const camSection = document.getElementById('cameraSection');
+      const camFeed = document.getElementById('cameraFeed');
+
+      const action = isCamRunning ? 'stop' : 'start';
+
+      try {
+        const response = await fetch('/toggle_camera', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: action })
+        });
+        const data = await response.json();
+        isCamRunning = data.active;
+
+        if (isCamRunning) {
+          camFeed.src = '/video_feed';
+          camSection.style.display = 'block';
+          btn.classList.add('active');
+          btnText.innerText = 'Tắt Camera';
+        } else {
+          camFeed.src = '';
+          camSection.style.display = 'none';
+          btn.classList.remove('active');
+          btnText.innerText = 'Mở Camera';
+        }
+      } catch (err) {
+        console.error('Lỗi khi điều khiển camera:', err);
+      }
+    }
+
+    function onThresholdChange() {
+      const confVal = document.getElementById('confSlider').value;
+      const iouVal = document.getElementById('iouSlider').value;
+      document.getElementById('conf_v').innerText = confVal;
+      document.getElementById('iou_v').innerText = iouVal;
+
+      if (isCamRunning) {
+        fetch('/update_thresholds', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ conf: confVal, iou: iouVal })
+        });
       }
     }
   </script>
