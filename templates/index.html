@@ -117,6 +117,56 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        .metrics-section {
+            margin-top: 35px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px 12px;
+            text-align: center;
+        }
+
+        .metric-card h3 {
+            color: #64748b;
+            font-size: 14px;
+            margin: 0 0 12px;
+        }
+
+        .metric-card .value {
+            color: #0f172a;
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .metric-card p {
+            color: #64748b;
+            font-size: 12px;
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 900px) {
+            .metrics-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .metrics-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
     </style>
 </head>
 
@@ -130,6 +180,80 @@
         Hệ thống nhận diện tàu thuyền và chướng ngại vật trên biển
         sử dụng YOLO và OpenCV.
     </p>
+    
+    <!-- Model Training Metrics -->
+    <section class="metrics-section">
+
+        <h2>Model Training Performance</h2>
+
+        {% if metrics %}
+
+            <div class="metrics-grid">
+
+                <div class="metric-card">
+                    <h3>Precision</h3>
+
+                    <div class="value">
+                        {{ metrics.precision }}%
+                    </div>
+
+                    <p>Prediction accuracy</p>
+                </div>
+
+                <div class="metric-card">
+                    <h3>Recall</h3>
+
+                    <div class="value">
+                        {{ metrics.recall }}%
+                    </div>
+
+                    <p>Object detection coverage</p>
+                </div>
+
+                <div class="metric-card">
+                    <h3>mAP50</h3>
+
+                    <div class="value">
+                        {{ metrics.map50 }}%
+                    </div>
+
+                    <p>IoU = 0.50</p>
+                </div>
+
+                <div class="metric-card">
+                    <h3>mAP50-95</h3>
+
+                    <div class="value">
+                        {{ metrics.map50_95 }}%
+                    </div>
+
+                    <p>IoU = 0.50 - 0.95</p>
+                </div>
+
+                <div class="metric-card">
+                    <h3>Epochs</h3>
+
+                    <div class="value">
+                        {{ metrics.epochs }}
+                    </div>
+
+                    <p>
+                        Best epoch: {{ metrics.best_epoch }}
+                    </p>
+                </div>
+
+            </div>
+
+        {% else %}
+
+            <p>
+                Training metrics are not available.
+                Please check the results.csv file.
+            </p>
+
+        {% endif %}
+
+    </section>
 
     <!-- Upload form -->
     <form method="POST" enctype="multipart/form-data">

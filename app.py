@@ -2,6 +2,7 @@
 import os
 import cv2
 import numpy as np
+import pandas as pd
 
 from flask import Flask, render_template, request, redirect, url_for, flash
 from werkzeug.utils import secure_filename
@@ -25,6 +26,11 @@ MODEL_PATH = os.path.join(
     "best.pt"
 )
 
+RESULTS_PATH = os.path.join(
+    "sea_detection_sea1",
+    "results.csv"
+)
+
 model = YOLO(MODEL_PATH)
 
 
@@ -38,6 +44,82 @@ CLASS_LABELS = {
     4: "Ship",
     5: "Other Object"
 }
+
+
+def load_metrics():
+    """
+    Read YOLO training metrics from results.csv.
+    Return the row with the highest mAP50.
+    """
+
+    if not os.path.exists(RESULTS_PATH):
+        return None
+
+    try:
+        df = pd.read_csv(RESULTS_PATH)
+
+        # Remove unnecessary spaces in column names
+        df.columns = df.columns.str.strip()
+
+        # YOLO training metric columns
+        metric_columns = {
+            "precision": "metrics/precision(B)",
+            "recall": "metrics/recall(B)",
+            "map50": "metrics/mAP50(B)",
+            "map50_95": "metrics/mAP50-95(B)"
+        }
+
+        # Check required columns
+        missing_columns = [
+            column
+            for column in metric_columns.values()
+            if column not in df.columns
+        ]
+
+        if missing_columns:
+            print("Missing metric columns:", missing_columns)
+            return None
+
+        # Convert metric values to numeric
+        for column in metric_columns.values():
+            df[column] = pd.to_numeric(
+                df[column],
+                errors="coerce"
+            )
+
+        # Find the epoch with the highest mAP50
+        best_index = df["metrics/mAP50(B)"].idxmax()
+
+        if pd.isna(best_index):
+            return None
+
+        best_row = df.loc[best_index]
+
+        return {
+            "precision": round(
+                float(best_row[metric_columns["precision"]]) * 100,
+                2
+            ),
+            "recall": round(
+                float(best_row[metric_columns["recall"]]) * 100,
+                2
+            ),
+            "map50": round(
+                float(best_row[metric_columns["map50"]]) * 100,
+                2
+            ),
+            "map50_95": round(
+                float(best_row[metric_columns["map50_95"]]) * 100,
+                2
+            ),
+            "epochs": int(len(df)),
+            "best_epoch": int(best_index) + 1
+        }
+
+    except Exception as error:
+        print(f"Cannot load training metrics: {error}")
+        return None
+
 
 
 def allowed_file(filename):
@@ -326,13 +408,15 @@ def index():
             detections=detections,
             detection_count=len(detections),
             confidence=confidence_threshold,
-            iou=iou_threshold
+            iou=iou_threshold,
+            metrics=load_metrics()
         )
 
     return render_template(
-        "index.html",
-        confidence=0.25,
-        iou=0.45
+      "index.html",
+      confidence=0.25,
+      iou=0.45,
+      metrics=load_metrics()
     )
 
 
