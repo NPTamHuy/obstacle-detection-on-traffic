@@ -1,481 +1,426 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sea Obstacle Detection Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hệ Thống Thị Giác Máy Tính: Nhận Diện Tàu Biển & Chướng Ngại Vật</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card: #131b2e;
+      --card-border: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --accent: #10b981;
+      --danger: #f43f5e;
+      --warning: #f59e0b;
+    }
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 24px;
+    }
+    .container { max-width: 1400px; margin: 0 auto; }
 
-        body {
-            font-family: Arial, sans-serif;
-            background: #f1f5f9;
-            color: #1e293b;
-            padding: 30px;
-        }
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      padding: 28px;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 { margin: 0 0 6px 0; font-size: 26px; color: var(--primary); font-weight: 700; }
+    header p { margin: 0; color: var(--text-muted); font-size: 14px; }
+    .badge-tag {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
 
-        .container {
-            max-width: 1400px;
-            margin: auto;
-        }
+    /* Model Performance Metrics */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .m-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      position: relative;
+    }
+    .m-card span { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
+    .m-card .val { font-size: 28px; font-weight: 700; color: #fff; margin: 6px 0 2px 0; font-family: 'JetBrains Mono', monospace; }
+    .m-card .desc { font-size: 12px; color: var(--text-muted); }
 
-        header {
-            margin-bottom: 30px;
-        }
+    /* Control Panel */
+    .control-panel {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .form-row {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
 
-        header h1 {
-            color: #0f172a;
-            margin-bottom: 10px;
-        }
+    /* Custom Upload Button */
+    .custom-file-upload {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px dashed rgba(56, 189, 248, 0.4);
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 500;
+      user-select: none;
+    }
+    .custom-file-upload:hover {
+      background: rgba(56, 189, 248, 0.08);
+      border-color: var(--primary);
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.2);
+    }
+    .custom-file-upload svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--primary);
+      stroke-width: 2;
+      fill: none;
+    }
+    .file-name-preview {
+      max-width: 200px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
 
-        header p {
-            color: #64748b;
-        }
+    /* Sliders */
+    .slider-group { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+    .slider-group label { color: var(--text-muted); }
+    .slider-group input[type="range"] { accent-color: var(--primary); cursor: pointer; }
+    .slider-val { font-family: 'JetBrains Mono', monospace; font-weight: bold; color: var(--primary); width: 40px; }
 
-        .section {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
+    .btn-submit {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: white;
+      border: none;
+      padding: 11px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-submit:hover { opacity: 0.9; transform: translateY(-1px); }
 
-        .section h2 {
-            margin-bottom: 20px;
-            font-size: 20px;
-        }
+    /* Latency Strip */
+    .latency-bar {
+      display: flex;
+      gap: 16px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 12px 18px;
+      margin-bottom: 24px;
+      align-items: center;
+      font-size: 13px;
+    }
+    .latency-item strong { color: var(--accent); font-family: 'JetBrains Mono', monospace; }
 
-        /* Training metrics */
+    /* Pipeline Step Columns */
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .step-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .step-header {
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid var(--card-border);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    .step-img-box {
+      background: #000;
+      height: 240px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .step-img-box img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    .step-footer {
+      padding: 14px;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      flex-grow: 1;
+      border-top: 1px solid var(--card-border);
+    }
+    .step-footer code {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #38bdf8;
+      font-family: 'JetBrains Mono', monospace;
+    }
 
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 15px;
-        }
-
-        .metric-card {
-            padding: 20px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-        }
-
-        .metric-card p {
-            color: #64748b;
-            font-size: 14px;
-            margin-bottom: 12px;
-        }
-
-        .metric-card h3 {
-            font-size: 26px;
-            color: #0f172a;
-        }
-
-        /* Upload form */
-
-        .upload-form {
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        input[type="file"] {
-            padding: 12px;
-            border: 1px dashed #94a3b8;
-            border-radius: 8px;
-            background: #f8fafc;
-        }
-
-        input[type="range"] {
-            width: 100%;
-        }
-
-        .threshold-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
-        }
-
-        button {
-            padding: 13px;
-            border: none;
-            border-radius: 8px;
-            background: #2563eb;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #1d4ed8;
-        }
-
-        .error {
-            padding: 12px;
-            background: #fee2e2;
-            color: #991b1b;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-
-        /* Detection overview */
-
-        .overview-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-
-        .overview-card {
-            padding: 20px;
-            background: #f8fafc;
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .overview-card p {
-            color: #64748b;
-            margin-bottom: 10px;
-        }
-
-        .overview-card h3 {
-            font-size: 28px;
-        }
-
-        /* Pipeline */
-
-        .pipeline-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
-
-        .pipeline-card {
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #fff;
-        }
-
-        .pipeline-card h3 {
-            padding: 15px;
-            background: #f8fafc;
-            font-size: 16px;
-        }
-
-        .pipeline-card img {
-            display: block;
-            width: 100%;
-            height: 300px;
-            object-fit: contain;
-            background: #e2e8f0;
-        }
-
-        /* Detection table */
-
-        .table-wrapper {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-        }
-
-        th, td {
-            padding: 14px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        th {
-            background: #f8fafc;
-            color: #475569;
-        }
-
-        .empty {
-            text-align: center;
-            color: #64748b;
-            padding: 25px;
-        }
-
-        @media (max-width: 900px) {
-            .metrics-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .pipeline-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 600px) {
-            body {
-                padding: 15px;
-            }
-
-            .metrics-grid,
-            .threshold-grid,
-            .overview-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    /* Objects Table */
+    .table-box {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th {
+      text-align: left;
+      padding: 12px 18px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    td { padding: 14px 18px; border-bottom: 1px solid var(--card-border); }
+    tr:last-child td { border-bottom: none; }
+    .badge-obj {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .coord-tag {
+      font-family: 'JetBrains Mono', monospace;
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+  </style>
 </head>
-
 <body>
-<div class="container">
-
+  <div class="container">
     <header>
-        <h1>Sea Obstacle Detection System</h1>
-        <p>
-            AI-powered maritime obstacle detection using YOLO
-            and OpenCV preprocessing.
-        </p>
+      <div>
+        <h1>Hệ Thống Nhận Diện Chướng Ngại Vật & Tàu Thuyền</h1>
+        <p>Quy trình Xử lý ảnh số đa tầng (Geometric Transformation, Filtering & Deep Feature Extraction)</p>
+      </div>
+      <div class="badge-tag">Môn học: Xử Lý Ảnh</div>
     </header>
 
-    <!-- Training metrics -->
-    <section class="section">
-        <h2>Model Training Performance</h2>
+    <!-- METRICS PANEL -->
+    <div class="metrics-grid">
+      <div class="m-card">
+        <span>Độ chính xác mAP@0.5</span>
+        <div class="val" style="color: var(--primary);">{{ metrics.map50 }}</div>
+        <div class="desc">Điểm trung bình tại ngưỡng IoU 50%</div>
+      </div>
+      <div class="m-card">
+        <span>Chuẩn khắt khe mAP@0.5:0.95</span>
+        <div class="val" style="color: #a855f7;">{{ metrics.map50_95 }}</div>
+        <div class="desc">Đánh giá độ khít của bounding box</div>
+      </div>
+      <div class="m-card">
+        <span>Tỷ lệ chuẩn xác (Precision)</span>
+        <div class="val" style="color: var(--accent);">{{ metrics.precision }}</div>
+        <div class="desc">Tỷ lệ đoán đúng trên số ca phát hiện</div>
+      </div>
+      <div class="m-card">
+        <span>Khả năng bao quát (Recall)</span>
+        <div class="val" style="color: var(--warning);">{{ metrics.recall }}</div>
+        <div class="desc">Bắt trọn mục tiêu, hạn chế bỏ sót</div>
+      </div>
+      <div class="m-card">
+        <span>Dung lượng huấn luyện</span>
+        <div class="val">{{ metrics.total_epochs }} Epochs</div>
+        <div class="desc">Điểm tối ưu tại Epoch #{{ metrics.best_epoch }}</div>
+      </div>
+    </div>
 
-        {% if metrics %}
-        <div class="metrics-grid">
-
-            <div class="metric-card">
-                <p>Precision</p>
-                <h3>{{ "%.4f"|format(metrics.precision) }}</h3>
-            </div>
-
-            <div class="metric-card">
-                <p>Recall</p>
-                <h3>{{ "%.4f"|format(metrics.recall) }}</h3>
-            </div>
-
-            <div class="metric-card">
-                <p>mAP50</p>
-                <h3>{{ "%.4f"|format(metrics.map50) }}</h3>
-            </div>
-
-            <div class="metric-card">
-                <p>mAP50-95</p>
-                <h3>{{ "%.4f"|format(metrics.map50_95) }}</h3>
-            </div>
-
-            <div class="metric-card">
-                <p>Epochs</p>
-                <h3>{{ metrics.epochs }}</h3>
-            </div>
-
+    <!-- CONTROL PANEL -->
+    <div class="control-panel">
+      <form method="POST" enctype="multipart/form-data">
+        <div class="form-row">
+          <div>
+            <input type="file" id="imageInput" name="image" accept="image/*" required style="display: none;" onchange="updateFileName(this)">
+            <label for="imageInput" class="custom-file-upload">
+              <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <span>Chọn tệp ảnh</span>
+              <span class="file-name-preview" id="fileNameText">Chưa có tệp</span>
+            </label>
+          </div>
+          <div class="slider-group">
+            <label>Ngưỡng tin cậy (Confidence):</label>
+            <input type="range" name="conf" min="0.1" max="0.9" step="0.05" value="{{ conf }}"
+                   oninput="document.getElementById('conf_v').innerText = this.value">
+            <span class="slider-val" id="conf_v">{{ conf }}</span>
+          </div>
+          <div class="slider-group">
+            <label>Ngưỡng loại trùng lặp (IoU NMS):</label>
+            <input type="range" name="iou" min="0.1" max="0.9" step="0.05" value="{{ iou }}"
+                   oninput="document.getElementById('iou_v').innerText = this.value">
+            <span class="slider-val" id="iou_v">{{ iou }}</span>
+          </div>
+          <button type="submit" class="btn-submit">Chạy Pipeline XLA</button>
         </div>
-        {% else %}
-        <p>Training metrics are not available.</p>
-        {% endif %}
-    </section>
+      </form>
+    </div>
 
-    <!-- Upload image -->
-    <section class="section">
-        <h2>Upload Maritime Image</h2>
+    {% if result %}
+    <!-- LATENCY BENCHMARK -->
+    <div class="latency-bar">
+      <span>⚡ <strong>Thời gian đo lường:</strong></span>
+      <span class="latency-item">Tiền xử lý OpenCV: <strong>{{ result.latencies.preprocess }} ms</strong></span>
+      <span>•</span>
+      <span class="latency-item">Mạng nơ-ron suy luận: <strong>{{ result.latencies.inference }} ms</strong></span>
+      <span>•</span>
+      <span class="latency-item">Hậu xử lý NMS: <strong>{{ result.latencies.postprocess }} ms</strong></span>
+      <span>•</span>
+      <span class="latency-item">Tổng chu trình: <strong>{{ result.latencies.total }} ms</strong></span>
+    </div>
 
-        {% if error %}
-            <div class="error">{{ error }}</div>
-        {% endif %}
-
-        <form
-            class="upload-form"
-            method="POST"
-            enctype="multipart/form-data"
-        >
-
-            <div class="form-group">
-                <label>Select an image</label>
-                <input
-                    type="file"
-                    name="image"
-                    accept="image/*"
-                    required
-                >
-            </div>
-
-            <div class="threshold-grid">
-
-                <div class="form-group">
-                    <label>
-                        Confidence:
-                        <span id="confidence-value">
-                            {{ confidence if confidence is defined else 0.25 }}
-                        </span>
-                    </label>
-
-                    <input
-                        type="range"
-                        name="confidence"
-                        min="0.05"
-                        max="1"
-                        step="0.05"
-                        value="{{ confidence if confidence is defined else 0.25 }}"
-                        oninput="document.getElementById('confidence-value').textContent=this.value"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label>
-                        IoU:
-                        <span id="iou-value">
-                            {{ iou if iou is defined else 0.45 }}
-                        </span>
-                    </label>
-
-                    <input
-                        type="range"
-                        name="iou"
-                        min="0.05"
-                        max="1"
-                        step="0.05"
-                        value="{{ iou if iou is defined else 0.45 }}"
-                        oninput="document.getElementById('iou-value').textContent=this.value"
-                    >
-                </div>
-
-            </div>
-
-            <button type="submit">
-                Detect Obstacles
-            </button>
-
-        </form>
-    </section>
-
-    {% if original_url %}
-
-    <!-- Detection overview -->
-    <section class="section">
-        <h2>Detection Overview</h2>
-
-        <div class="overview-grid">
-
-            <div class="overview-card">
-                <p>Image filename</p>
-                <h3 style="font-size: 18px;">
-                    {{ filename }}
-                </h3>
-            </div>
-
-            <div class="overview-card">
-                <p>Total detected objects</p>
-                <h3>{{ detection_count }}</h3>
-            </div>
-
+    <!-- 4 PIPELINE STEPS -->
+    <div class="pipeline-grid">
+      <!-- 1: Ảnh gốc -->
+      <div class="step-card">
+        <div class="step-header">1. Không Gian Ảnh Gốc</div>
+        <div class="step-img-box"><img src="{{ result.raw_img }}" alt="Original Image"></div>
+        <div class="step-footer">
+          <strong>Kích thước ảnh:</strong> <code>{{ result.orig_size }} px</code><br>
+          Hệ màu BGR từ cảm biến/camera với tỷ lệ khung hình tự nhiên, dải mức xám <code>[0, 255]</code>.
         </div>
-    </section>
+      </div>
 
-    <!-- Detection pipeline -->
-    <section class="section">
-        <h2>Image Processing Pipeline</h2>
-
-        <div class="pipeline-grid">
-
-            <div class="pipeline-card">
-                <h3>1. Original Image</h3>
-                <img src="{{ original_url }}" alt="Original image">
-            </div>
-
-            <div class="pipeline-card">
-                <h3>2. Letterbox Preprocessing</h3>
-                <img src="{{ letterbox_url }}" alt="Letterbox image">
-            </div>
-
-            <div class="pipeline-card">
-                <h3>3. Canny Edge Detection</h3>
-                <img src="{{ edge_url }}" alt="Canny edge image">
-            </div>
-
-            <div class="pipeline-card">
-                <h3>4. YOLO Detection Result</h3>
-                <img src="{{ result_url }}" alt="YOLO result">
-            </div>
-
+      <!-- 2: Letterbox -->
+      <div class="step-card">
+        <div class="step-header">2. Tiền Xử Lý Hình Học (Letterbox)</div>
+        <div class="step-img-box"><img src="{{ result.letterbox_img }}" alt="Letterbox Padded"></div>
+        <div class="step-footer">
+          <strong>Nội suy:</strong> Bilinear Interpolation giữ nguyên tỷ lệ vật thể.<br>
+          <strong>Đệm viền hằng số:</strong> Bù viền xám <code>value = 114</code> để đưa về kích thước chuẩn <code>640 × 640 px</code>.
         </div>
-    </section>
+      </div>
 
-    <!-- Class statistics -->
-    <section class="section">
-        <h2>Detection Statistics</h2>
-
-        {% if detection_summary %}
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Class</th>
-                        <th>Number of Objects</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {% for item in detection_summary %}
-                    <tr>
-                        <td>{{ item.class_name }}</td>
-                        <td>{{ item.count }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+      <!-- 3: Biên Canny -->
+      <div class="step-card">
+        <div class="step-header">3. Trích Xuất Biên Cạnh (Canny Edge)</div>
+        <div class="step-img-box"><img src="{{ result.edge_img }}" alt="Canny Edge Map"></div>
+        <div class="step-footer">
+          <strong>Lọc không gian:</strong> Gaussian Blur làm mịn và khử nhiễu sóng biển.<br>
+          <strong>Toán tử Canny:</strong> Đạo hàm bậc một phát hiện đường biên cấu trúc thân tàu.
         </div>
-        {% else %}
-            <p class="empty">No objects detected.</p>
-        {% endif %}
-    </section>
+      </div>
 
-    <!-- Detection details -->
-    <section class="section">
-        <h2>Detection Details</h2>
-
-        {% if detections %}
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Class</th>
-                        <th>Confidence</th>
-                        <th>Bounding Box</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {% for detection in detections %}
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ detection.class_name }}</td>
-                        <td>
-                            {{ "%.2f"|format(detection.confidence) }}
-                        </td>
-                        <td>{{ detection.box }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+      <!-- 4: Kết quả NMS -->
+      <div class="step-card">
+        <div class="step-header">4. Hậu Xử Lý & Lọc NMS</div>
+        <div class="step-img-box"><img src="{{ result.final_img }}" alt="Final Detection"></div>
+        <div class="step-footer">
+          <strong>Ánh xạ ngược:</strong> Chiếu tọa độ box từ ma trận <code>640 × 640</code> về kích thước ảnh ban đầu.<br>
+          <strong>Lọc phi cực đại (NMS):</strong> Phát hiện <strong>{{ result.count }}</strong> mục tiêu độc lập.
         </div>
-        {% else %}
-            <p class="empty">No objects detected.</p>
-        {% endif %}
-    </section>
+      </div>
+    </div>
 
+    <!-- DETECTIONS TABLE -->
+    {% if result.detections %}
+    <div class="table-box">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Đối Tượng Phát Hiện</th>
+            <th>Độ Tin Cậy (Confidence)</th>
+            <th>Tọa Độ Bounding Box [x, y, width, height]</th>
+            <th>Diện Tích (Pixels)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for det in result.detections %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td><span class="badge-obj">{{ det.class }}</span></td>
+            <td><strong style="color: var(--primary);">{{ "%.2f"|format(det.confidence * 100) }}%</strong></td>
+            <td><span class="coord-tag">{{ det.box }}</span></td>
+            <td><code>{{ "{:,}".format(det.area) }} px²</code></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p style="text-align: center; color: var(--text-muted); margin-top: 20px;">
+      Không phát hiện mục tiêu nào với ngưỡng tin cậy hiện tại. Hãy thử kéo giảm thanh trượt Confidence!
+    </p>
     {% endif %}
+    {% endif %}
+  </div>
 
-</div>
+  <script>
+    function updateFileName(input) {
+      const fileNameSpan = document.getElementById('fileNameText');
+      if (input.files && input.files.length > 0) {
+        fileNameSpan.innerText = input.files[0].name;
+        fileNameSpan.style.color = '#38bdf8';
+      } else {
+        fileNameSpan.innerText = 'Chưa có tệp';
+        fileNameSpan.style.color = 'var(--text-muted)';
+      }
+    }
+  </script>
 </body>
 </html>
