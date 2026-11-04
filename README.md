@@ -10,7 +10,7 @@
 |---|---|
 | **Phạm Minh Quang** | Thành viên |
 | **Phan Sĩ Thành** | Thành viên |
-| **Nguyễn Phúc Tâm Huy** | Thành viên |
+| **Nguyễn Phúc Tâm Huy** | Nhóm trưởng|
 
 ---
 
